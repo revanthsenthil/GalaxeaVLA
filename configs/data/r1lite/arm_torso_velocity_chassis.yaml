@@ -23,8 +23,8 @@ dataset:
         raw_shape: 6
         shape: 6
       - key: chassis.velocities
-        raw_shape: 6
-        shape: 6
+        raw_shape: 3
+        shape: 3
     
     state:
       - key: left_arm
@@ -43,8 +43,8 @@ dataset:
         raw_shape: 4
         shape: 4
       - key: chassis
-        raw_shape: 3
-        shape: 3
+        raw_shape: 6
+        shape: 6
     
     images:
       - key: head_rgb

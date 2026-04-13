@@ -1,0 +1,13 @@
+# @package _global_
+
+defaults:
+  - override /data: r1lite/arm_torso_velocity_chassis
+  - override /model: vla/g0plus
+
+model:
+  pretrained_ckpt: /local/galaxea/data/G0Plus_3B_base/checkpoints
+
+data:
+  dataset:
+    dataset_dirs:
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Tray_20250725_010

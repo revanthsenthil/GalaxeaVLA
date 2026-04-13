@@ -1,0 +1,47 @@
+# @package _global_
+
+defaults:
+  - override /data: r1lite/arm_torso_velocity_chassis
+  - override /model: vla/g0plus
+
+model:
+  pretrained_ckpt: /local/galaxea/data/G0Plus_3B_base/checkpoints
+
+data:
+  dataset:
+    dataset_dirs:
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_Fruits_20250819_011
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_Mineral_Water_Bottles_On_The_Desk_20250721_008
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Fruits_20250716_006
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Fruits_20250731_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Fruits_20250822_013
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Tray_20250725_010
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Tray_20250804_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_The_Tray_20250822_013
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Arrange_Toiletries_20250731_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Collect_Juice_20250621_001
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Desktop_Garbage_Decluttering_20250712_006
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Desktop_Garbage_Organizing20250721_008
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Organize_Mineral_Water_Bottles_0n_The_Table_20250709_006
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Organize_trays_20250621_001
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Organizing_Desktop_Trash_20250630_003
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Pen_Case_For_Storing_Stationery_20250717_006
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Pen_Case_For_Storing_Stationery_20250719_008
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Pen_Case_For_Storing_Stationery_20250802_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Put_The_Glasses_In_The_Glasses_Case_20250722_008
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Put_The_Glasses_In_The_Glasses_Case_20250731_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Put_The_Pen_Into_The_Pen_Holder_20250722_008
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Put_The_Pen_Into_The_Pen_Holder_20250724_010
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Put_The_Pen_Into_The_Pen_Holder_20250731_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Sort_Out_Desktop_Garbage20250802_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Storage_Tools_20250722_008
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Storage_Tools_20250725_010
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Storage_Tools_20250802_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Store_Tableware_20250625_002
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Take_A_Drink_Out_Of_Fridge_And_Put_It_On_Table_20250712_006
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Take_Drinks_From_The_Refrigerator_And_Place_Them_On_The_Table_20250728_010
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Take_a_bowl_from_the_cabinet_20250620_001
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Take_and_place_tableware_20250620_001
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Use_Of_Objects_20250704_003
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Wipe_The_Desktop_20250801_012
+      - /local/galaxea/data/galaxea_open_world/lerobot_extracted/Wipe_The_Desktop_20250804_011

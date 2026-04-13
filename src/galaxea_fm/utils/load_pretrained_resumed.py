@@ -9,7 +9,7 @@ from ema_pytorch import EMA
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from galaxea_fm.utils.normalizer import (
-    load_dataset_stats_from_json, 
+    load_dataset_stats_from_json,
     save_dataset_stats_to_json,
 )
 
@@ -17,22 +17,30 @@ logger = get_logger(__name__)
 
 
 def load_pretrained_model(
-    pretrained_model_path: Path | str, 
-    model: DDP, 
+    pretrained_model_path: Path | str,
+    model: DDP,
 ):
     """
     Safely load state dict with proper handling of shape mismatches.
-
-    Args:
-        model: The model to load weights into
-        state_dict: State dict from checkpoint
+    Supports both:
+      - raw state dict saved directly as model.pt
+      - wrapped checkpoint dicts containing "model_state_dict"
     """
     pretrained_model_path = Path(pretrained_model_path)
-    pretrained_dict = torch.load(pretrained_model_path / "model.pt", weights_only=True, map_location='cpu')
+    loaded_obj = torch.load(
+        pretrained_model_path / "model.pt",
+        weights_only=True,
+        map_location="cpu",
+    )
+
+    if isinstance(loaded_obj, dict) and "model_state_dict" in loaded_obj:
+        pretrained_dict = loaded_obj["model_state_dict"]
+        logger.info("Detected wrapped checkpoint with key 'model_state_dict'; unwrapping for preload.")
+    else:
+        pretrained_dict = loaded_obj
+
     model_dict = model.module.state_dict()
 
-    # Check for unexpected and shape mismatches and filter valid keys
-    # Unexpected keys must be handled here, not by `load_state_dict`
     unexpected_keys, mismatched_key_shapes, match_key_tensors = [], {}, {}
 
     for key, ckpt_param in pretrained_dict.items():
@@ -43,12 +51,10 @@ def load_pretrained_model(
         else:
             match_key_tensors[key] = ckpt_param
 
-    # Load shape matched tensors, get missing keys which excludes shape mismatched ones
     incompatible = model.module.load_state_dict(match_key_tensors, strict=False)
     assert len(incompatible.unexpected_keys) == 0, "The filtered state dict should be a subset of model keys."
     missing_keys = list(set(incompatible.missing_keys) - set(mismatched_key_shapes.keys()))
 
-    # Log summary
     logger.info(f"Successfully loaded keys for model: {len(match_key_tensors)} / {len(model_dict)}")
 
     if missing_keys:
@@ -93,17 +99,16 @@ def save_checkpoint(
     Save checkpoint in directory-based format.
     Directory structure:
         checkpoints/
-        ├── step_N/                      # Deployment directory
-        │   ├── model.pt                 # Model weights
-        │   ├── ema_model.pt             # EMA weights (if enabled)
-        │   ├── dataset_stats.json       # Normalization stats
-        │   └── config.yaml              # Config
-        └── trainer_state_step_N.pt      # Trainer state (optimizer + scheduler)
+        ├── step_N/
+        │   ├── model.pt
+        │   ├── ema_model.pt
+        │   ├── dataset_stats.json
+        │   └── config.yaml
+        └── trainer_state_step_N.pt
     """
     path = Path(path)
     path.mkdir(parents=True, exist_ok=True)
 
-    # Get model state dict (handle DDP wrapper)
     if isinstance(model, DDP):
         model_state_dict = model.module.state_dict()
     else:
@@ -131,27 +136,16 @@ def load_checkpoint_for_eval(
     model: torch.nn.Module,
     device: str = "cpu",
 ) -> Tuple[torch.nn.Module, Dict]:
-    """
-    Load checkpoint for evaluation, supporting both legacy (.pt file) and new (directory) formats.
-
-    Args:
-        checkpoint_path: Path to checkpoint (either .pt file or directory)
-        model: Model to load weights into
-        device: Device to load weights to
-
-    Returns:
-        tuple: (model with loaded weights, dataset_stats)
-    """
     checkpoint_path = Path(checkpoint_path)
 
     if checkpoint_path.is_dir():
-        # New format: directory with model.pt and dataset_stats.json
         logger.info(f"Loading checkpoint from directory (new format): {checkpoint_path}")
         state_dict = torch.load(checkpoint_path / "model.pt", map_location=device, weights_only=True)
+        if isinstance(state_dict, dict) and "model_state_dict" in state_dict:
+            state_dict = state_dict["model_state_dict"]
         model.load_state_dict(state_dict, strict=True)
         dataset_stats = load_dataset_stats_from_json(checkpoint_path / "dataset_stats.json")
     else:
-        # Legacy format: single .pt file
         logger.info(f"Loading checkpoint from file (legacy format): {checkpoint_path}")
         state_dict = torch.load(checkpoint_path, map_location=device, weights_only=True)
         model.load_state_dict(state_dict["model_state_dict"], strict=True)
@@ -168,22 +162,10 @@ def resume_checkpoint(
     ema_model: Optional[EMA],
     device_id: int,
 ) -> Tuple[int, int, int]:
-    """
-    Resume full training state from directory-based checkpoint.
-    Directory structure:
-        checkpoints/
-        ├── step_N/                      # Deployment directory
-        │   ├── model.pt                 # Model weights
-        │   ├── ema_model.pt             # EMA weights (if enabled)
-        │   ├── dataset_stats.json       # Normalization stats
-        │   └── config.yaml              # Config
-        └── trainer_state_step_N.pt      # Trainer state (optimizer + scheduler)
-    
-    Returns:
-        tuple: (step, epoch, batch_idx)
-    """
     checkpoint_path = Path(checkpoint_path)
     model_state = torch.load(checkpoint_path / "model.pt", weights_only=True, map_location=f"cuda:{device_id}")
+    if isinstance(model_state, dict) and "model_state_dict" in model_state:
+        model_state = model_state["model_state_dict"]
     model.module.load_state_dict(model_state)
     del model_state
 
@@ -201,6 +183,8 @@ def resume_checkpoint(
         ema_path = checkpoint_path / "ema_model.pt"
         assert ema_path.exists(), f"Trying to load EMA model but state does not exist at {ema_path}"
         ema_state = torch.load(ema_path, weights_only=True, map_location=f"cuda:{device_id}")
+        if isinstance(ema_state, dict) and "model_state_dict" in ema_state:
+            ema_state = ema_state["model_state_dict"]
         ema_model.ema_model.load_state_dict(ema_state)
         del ema_state
 
